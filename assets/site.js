@@ -96,19 +96,22 @@
         hero.classList.remove('a-abrir');
         const pousa = () => {
           if (pousa.feito) return; pousa.feito = true;
-          logoTopo && logoTopo.classList.add('pousou');
-          logoTopo && logoTopo.classList.remove('espera');
-          root.classList.add('intro-feito');
-          setTimeout(() => logoTopo && logoTopo.classList.remove('pousou'), 900);
+          logoTopo && logoTopo.classList.remove('espera');   // as ondas do topo aparecem por baixo das que voaram
+          root.classList.add('intro-feito');                  // e as que voaram desvanecem no mesmo sítio
         };
         setTimeout(() => {
-          if (de && para && svg) {
+          if (de && para && svg && svg.animate) {
             const a = de.getBoundingClientRect(), b = para.getBoundingClientRect(), k = b.width / a.width, r = svg.getBoundingClientRect();
-            svg.style.transformOrigin = `${a.left - r.left}px ${a.top - r.top}px`;
-            svg.getBoundingClientRect();
-            svg.style.transform = `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(${k})`;
-            svg.addEventListener('transitionend', e => { if (e.propertyName === 'transform') pousa(); }, { once: true });
-            setTimeout(pousa, 1100);
+            const ox = a.left - r.left, oy = a.top - r.top;
+            svg.style.transformOrigin = `${ox}px ${oy}px`;
+            const dx = b.left - a.left, dy = b.top - a.top;
+            // um só movimento, sem paragens: sobe em arco suave e encolhe até ao lugar do logótipo no topo
+            const voo = svg.animate([
+              { transform: 'translate(0,0) scale(1)' },
+              { transform: `translate(${dx * .42}px, ${dy * .62}px) scale(${1 - (1 - k) * .55})`, offset: .5 },
+              { transform: `translate(${dx}px, ${dy}px) scale(${k})` }
+            ], { duration: 1150, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' });
+            voo.onfinish = pousa; setTimeout(pousa, 1400);
           } else pousa();
         }, 380);
         setTimeout(mostraTitulo, 650);
@@ -245,11 +248,11 @@
     $$('.avf-ops', avf).forEach(g => $$('.avf-op', g).forEach(b => b.addEventListener('click', () => {
       $$('.avf-op', g).forEach(x => x.setAttribute('aria-checked', x === b)); g.classList.remove('falha'); erro.hidden = true;
     })));
-    const valor = g => $('.avf-op[aria-checked=true]', g)?.textContent || '';
+    const valor = g => { const o = $('.avf-op[aria-checked=true]', g); return o ? (o.dataset.v || o.textContent) : ''; };
     const mostra = (i, dir) => {
       corpo.dataset.dir = dir; passos.forEach((x, k) => x.hidden = k !== i); p = i;
       barra.forEach((b, k) => b.classList.toggle('on', k <= i)); $('[data-avf-n]', avf).textContent = i + 1;
-      volta.hidden = i === 0; seg.firstChild.textContent = i === passos.length - 1 ? 'Pedir avaliação' : 'Continuar';
+      volta.hidden = i === 0; seg.textContent = i === passos.length - 1 ? 'Pedir avaliação' : 'Continuar';
       erro.hidden = true;
     };
     const falhas = () => {
@@ -269,13 +272,20 @@
       if (p < passos.length - 1) return mostra(p + 1, 'frente');
       const v = n => valor($(`[data-campo=${n}]`, avf)), i = n => avf.elements[n].value.trim();
       const msg = [`Olá, sou ${i('nome')} e gostava de pedir uma avaliação.`, `Imóvel: ${v('tipo')}${v('tipologia') ? ' ' + v('tipologia') : ''} em ${i('local')}.`,
-        `Estado: ${v('estado')}.`, v('prazo') ? `Quando: ${v('prazo')}.` : '', `Telemóvel: ${i('telefone')}.`].filter(Boolean).join('\n');
+        `Estado: ${v('estado')}.`, v('prazo') ? `Quando: ${v('prazo')}.` : '', i('telefone') ? `Telemóvel: ${i('telefone')}.` : ''].filter(Boolean).join('\n');
       const url = `https://wa.me/${avf.closest('[data-wa]')?.dataset.wa || '351915711212'}?text=${encodeURIComponent(msg)}`;
       passos.forEach(x => x.hidden = true); $('[data-avf-acoes]', avf).hidden = true; $('.avf-topo', avf).hidden = true;
       fim.hidden = false; fim.focus(); $('[data-avf-wa]', avf).href = url; window.open(url, '_blank', 'noopener');
       $('[data-avf-copia]', avf).addEventListener('click', e2 => navigator.clipboard?.writeText(msg).then(() => { e2.target.textContent = 'Copiado'; }));
     });
     $$('input', avf).forEach(x => x.addEventListener('input', () => { x.classList.remove('falha'); erro.hidden = true; }));
+  }
+
+  /* ---------- equipa em leque: abre quando chega ao ecrã */
+  const leque = $('[data-leque]');
+  if (leque) {
+    if (calmo) leque.classList.add('aberto');
+    else new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { setTimeout(() => leque.classList.add('aberto'), 250); o.disconnect(); } }), { threshold: 0 }).observe(leque);
   }
 
   /* ---------- ler mais na descrição */
