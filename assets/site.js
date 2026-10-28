@@ -98,6 +98,7 @@
           if (pousa.feito) return; pousa.feito = true;
           logoTopo && logoTopo.classList.remove('espera');   // as ondas do topo aparecem por baixo das que voaram
           root.classList.add('intro-feito');                  // e as que voaram desvanecem no mesmo sítio
+          setTimeout(mostraTitulo, 150);                      // o título só entra com o logótipo já pousado
         };
         setTimeout(() => {
           if (de && para && svg && svg.animate) {
@@ -114,7 +115,6 @@
             voo.onfinish = pousa; setTimeout(pousa, 1400);
           } else pousa();
         }, 380);
-        setTimeout(mostraTitulo, 650);
       }, 1900);
     }
   } else if (cin) { mostraTitulo(); corre(); }
@@ -285,7 +285,11 @@
   const leque = $('[data-leque]');
   if (leque) {
     if (calmo) leque.classList.add('aberto');
-    else new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { setTimeout(() => leque.classList.add('aberto'), 250); o.disconnect(); } }), { threshold: 0 }).observe(leque);
+    // abre ao chegar; ao voltar para cima e o leque sair por baixo do ecrã, junta-se outra vez com o Fábio por cima
+    else new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) leque.classList.add('aberto');
+      else if (e.boundingClientRect.top > 0) leque.classList.remove('aberto');
+    }), { threshold: .25 }).observe(leque);
   }
 
   /* ---------- ler mais na descrição */
