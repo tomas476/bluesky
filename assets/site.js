@@ -17,8 +17,8 @@
   const btn = $('[data-menu-btn]'), menu = $('[data-menu]');
   aoScroll.push(() => {
     const y = scrollY, aberto = btn && btn.getAttribute('aria-expanded') === 'true';
-    // a pílula fica sempre visível, no telemóvel e no PC
-    d.body.classList.add('topo-visivel');
+    // por cima do hero a barra é transparente; ao descer fica sólida
+    topo && topo.classList.toggle('solido', !hero || y > 40);
     antes = y;
     if (barra) {
       barra.classList.toggle('on', y > (hero ? hero.offsetHeight * .6 : 160));
@@ -225,7 +225,7 @@
     };
     chips.forEach(ch => ch.addEventListener('click', () => aplica(ch.dataset.f)));
     const inicial = new URL(location).searchParams.get('f'); if (inicial) aplica(inicial);
-    ordem.addEventListener('change', () => {
+    ordem && ordem.addEventListener('change', () => {
       const o = ordem.value;
       const k = c => o === 'nota' ? -(+c.dataset.nota) * 1e9 - (+c.dataset.preco) / 1e3 : (o === 'asc' ? 1 : -1) * +c.dataset.preco;
       [...cards].sort((a, b) => k(a) - k(b)).forEach(c => grelha.append(c));
@@ -234,6 +234,48 @@
       grelha.classList.toggle('em-lista', b.dataset.vista === 'lista');
       $$('[data-vista]', f).forEach(x => x.setAttribute('aria-pressed', x === b));
     }));
+  }
+
+  /* ---------- pedido de avaliação: três passos, sai por WhatsApp */
+  const avf = $('[data-avf]');
+  if (avf) {
+    const passos = $$('.avf-passo', avf), corpo = $('.avf-corpo', avf), barra = $$('.avf-barra li', avf);
+    const seg = $('[data-avf-seg]', avf), volta = $('[data-avf-voltar]', avf), erro = $('[data-avf-erro]', avf), fim = $('[data-avf-fim]', avf);
+    let p = 0;
+    $$('.avf-ops', avf).forEach(g => $$('.avf-op', g).forEach(b => b.addEventListener('click', () => {
+      $$('.avf-op', g).forEach(x => x.setAttribute('aria-checked', x === b)); g.classList.remove('falha'); erro.hidden = true;
+    })));
+    const valor = g => $('.avf-op[aria-checked=true]', g)?.textContent || '';
+    const mostra = (i, dir) => {
+      corpo.dataset.dir = dir; passos.forEach((x, k) => x.hidden = k !== i); p = i;
+      barra.forEach((b, k) => b.classList.toggle('on', k <= i)); $('[data-avf-n]', avf).textContent = i + 1;
+      volta.hidden = i === 0; seg.firstChild.textContent = i === passos.length - 1 ? 'Pedir avaliação' : 'Continuar';
+      erro.hidden = true;
+    };
+    const falhas = () => {
+      const f = [];
+      $$('[data-obrig]', passos[p]).forEach(g => { if (!valor(g)) { g.classList.add('falha'); f.push(g); } });
+      $$('input[required]', passos[p]).forEach(i => {
+        const ok = i.type === 'checkbox' ? i.checked : i.name === 'telefone' ? i.value.replace(/\D/g, '').length >= 9 : i.value.trim().length > 1;
+        i.classList.toggle('falha', !ok); if (!ok) f.push(i);
+      });
+      return f;
+    };
+    volta.addEventListener('click', () => mostra(p - 1, 'tras'));
+    avf.addEventListener('submit', e => {
+      e.preventDefault();
+      const f = falhas();
+      if (f.length) { erro.textContent = 'Falta responder ao que está marcado.'; erro.hidden = false; (f[0].querySelector?.('.avf-op') || f[0]).focus(); return; }
+      if (p < passos.length - 1) return mostra(p + 1, 'frente');
+      const v = n => valor($(`[data-campo=${n}]`, avf)), i = n => avf.elements[n].value.trim();
+      const msg = [`Olá, sou ${i('nome')} e gostava de pedir uma avaliação.`, `Imóvel: ${v('tipo')}${v('tipologia') ? ' ' + v('tipologia') : ''} em ${i('local')}.`,
+        `Estado: ${v('estado')}.`, v('prazo') ? `Quando: ${v('prazo')}.` : '', `Telemóvel: ${i('telefone')}.`].filter(Boolean).join('\n');
+      const url = `https://wa.me/${avf.closest('[data-wa]')?.dataset.wa || '351915711212'}?text=${encodeURIComponent(msg)}`;
+      passos.forEach(x => x.hidden = true); $('[data-avf-acoes]', avf).hidden = true; $('.avf-topo', avf).hidden = true;
+      fim.hidden = false; fim.focus(); $('[data-avf-wa]', avf).href = url; window.open(url, '_blank', 'noopener');
+      $('[data-avf-copia]', avf).addEventListener('click', e2 => navigator.clipboard?.writeText(msg).then(() => { e2.target.textContent = 'Copiado'; }));
+    });
+    $$('input', avf).forEach(x => x.addEventListener('input', () => { x.classList.remove('falha'); erro.hidden = true; }));
   }
 
   /* ---------- ler mais na descrição */
