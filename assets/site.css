@@ -122,10 +122,10 @@ p{margin:0}
 .intro.corre .mare-r{animation:mare 1s var(--mola) forwards}
 .intro.corre .mr1{animation-delay:.16s}.intro.corre .mr2{animation-delay:.32s}
 @keyframes mare{to{transform:none}}
-.i-nome,.i-sub{transform:translateY(240px);transition:transform 1s var(--mola)}
+.i-nome,.i-sub{transform:translateY(70px);opacity:0;transition:transform 1s cubic-bezier(.2,.8,.2,1),opacity .8s}
 .i-sub{transition-delay:.1s}
-.intro.nome .i-nome,.intro.nome .i-sub{transform:none}
-.intro.sai-nome .i-nome,.intro.sai-nome .i-sub{transform:translateY(240px);opacity:0;transition:transform .5s cubic-bezier(.6,0,.8,.3),opacity .3s}
+.intro.nome .i-nome,.intro.nome .i-sub{transform:none;opacity:1}
+.intro.sai-nome .i-nome,.intro.sai-nome .i-sub{transform:translateY(40px);opacity:0;transition:transform .5s cubic-bezier(.6,0,.8,.3),opacity .3s}
 .intro{transition:opacity .3s}
 .intro-feito .intro{opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s}
 .hero.a-abrir .veu{background:rgba(14,34,53,.55);transition:background 1.2s}
