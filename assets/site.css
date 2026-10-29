@@ -329,7 +329,7 @@ p{margin:0}
 .lista{padding:28px var(--g) 96px;max-width:var(--max);margin:0 auto}
 .lista-cab h1{font-size:clamp(32px,6.4vw,54px);letter-spacing:-.04em}
 .lista-cab p{margin-top:16px;color:var(--cinza);max-width:36em}
-.filtros{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;margin:36px 0 12px;position:sticky;top:80px;z-index:20;padding:10px 0;background:var(--areia)}
+.filtros{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;margin:36px 0 12px;position:sticky;top:63px;z-index:20;padding:12px 0;background:var(--areia);box-shadow:0 0 0 100vmax var(--areia);clip-path:inset(0 -100vmax)}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 calc(var(--g) * -1);padding:2px var(--g)}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:99px;border:1px solid var(--linha);font-weight:500;font-size:15px;transition:background .3s,color .3s,border-color .3s}
