@@ -82,6 +82,11 @@
   const semIntro = () => { root.classList.add('intro-feito'); logoTopo && logoTopo.classList.remove('espera'); hero && hero.classList.remove('a-abrir'); mostraTitulo(); };
   if (intro) {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    // refresh com #secção no endereço (ficou lá de um clique no menu): recomeça no topo, com a abertura
+    const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    if (location.hash && nav && (nav.type === 'reload' || nav.type === 'back_forward')) history.replaceState(null, '', location.pathname + location.search);
+    // voltar atrás para a página inicial: o browser mostra-a da memória sem correr nada, por isso carrega-se de novo
+    addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
     if (!location.hash) scrollTo(0, 0);
     corre();
     if (calmo || location.hash) semIntro();
